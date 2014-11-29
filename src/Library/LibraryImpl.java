@@ -1,5 +1,6 @@
 package Library;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class LibraryImpl  implements Runnable {
 	 * @return boolean
 	 * @throws RemoteException
 	 */	
-	public boolean createAccount(String firstName, 
+	public String createAccount(String firstName, 
 								 String lastName,
 								 String emailAddress, 
 								 String phoneNumber, 
@@ -70,10 +71,10 @@ public class LibraryImpl  implements Runnable {
 				
 				// Log the operation
 				logFile("stuend_create", "Student name: " + student.firstName + " record is created");
-				return true;
+				return "true";
 			} else {
 				logFile("stuend_create", "Student name: " + student.firstName + " record is failed");
-				return false;
+				return "false";
 			}		
 	}
 
@@ -88,12 +89,12 @@ public class LibraryImpl  implements Runnable {
 	 * 
 	 * @return boolean
 	 */	
-	public boolean reserveBook(String username, 
-							   String password,
-							   String bookName, 
-							   String authorName) {
+	public String reserveBook(String username, 
+							  String password,
+							  String bookName, 
+							  String authorName) {
 		
-		Boolean reserveBookeRecordFlag = false;
+		String reserveBookeRecordFlag = "false";
 		Student student 			   = StudentRecord.get(username);
 		
 		if (student == null) {
@@ -112,19 +113,9 @@ public class LibraryImpl  implements Runnable {
 					if (book != null) {
 						
 						synchronized (book) {
-							reserveBookeRecordFlag = book.addBook(student.username);
-						}
-						
-						if (reserveBookeRecordFlag) {						
-							// Log file create
-							logFile("reserve_book", "Vanier: One book :" + bookName
-									+ " is reserved for student: "
-									+ student.username);
-						} else {				
-							logFile("reserve_book", "Vanier: One book :" + bookName
-									+ " is not reserved for student: "
-									+ student.username);
-						}				
+							reserveBookeRecordFlag = book.addBook(student.username)? "true":"false";
+						}					
+									
 				}
 			}
 			break;
@@ -135,20 +126,8 @@ public class LibraryImpl  implements Runnable {
 					if (book != null) {
 						
 						synchronized (book) {
-							reserveBookeRecordFlag = book.addBook(student.username);
-						}
-						
-						if (reserveBookeRecordFlag) {
-							
-							// Log file create
-							logFile("reserve_book", "Concordia: One book :" + bookName
-									+ " is reserved for student: "
-									+ student.username);
-						} else {						
-							logFile("reserve_book", "Concordia: One book :" + bookName
-									+ " is not reserved for student: "
-									+ student.username);
-						}				
+							reserveBookeRecordFlag = book.addBook(student.username)? "true":"false";
+						}			
 				}
 			}
 			break;
@@ -158,19 +137,10 @@ public class LibraryImpl  implements Runnable {
 					Book book = DowLibrary.get(bookName);
 					if (book != null) {
 						synchronized (book) {
-							reserveBookeRecordFlag = book.addBook(student.username);
+							reserveBookeRecordFlag = book.addBook(student.username)? "true":"false";
 						}
-						if (reserveBookeRecordFlag) {						
-							// Log file create
-							logFile("reserve_book", "Dawson: One book :" + bookName
-									+ " is reserved for student: "
-									+ student.username);
-						} else {						
-							logFile("reserve_book", "Dawson: One book :" + bookName
-									+ " is not reserved for student: "
-									+ student.username);
-						}				
-				}
+										
+					}
 			}
 			break;
 			
@@ -356,23 +326,28 @@ public class LibraryImpl  implements Runnable {
 	* Run Web Server by threading
 	*/
 	public void run()
-	{		
+	{	
+		String response = null;
 		UDPServer us  = null;
 		try{		
 			us = new UDPServer("localhost", this.institutePort);			
 			String data = us.recieveRequest();
 			String[] requestParts = data.split(":");
 			
-			if(requestParts.equals("createaccount")) {
-				this.createAccount(requestParts[2], requestParts[3], requestParts[2], requestParts[3], requestParts[4], requestParts[5], requestParts[6]);
-			}else if(requestParts.equals("reservebook")) {
-				this.reserveBook(requestParts[2], requestParts[3], requestParts[4], requestParts[5]);
-				
-			}else {
-				
-			}			
+			System.out.println("Incomeing Request Details: " +Arrays.toString(requestParts));
 			
-			us.sendResponse("ok");
+			if(requestParts[1].equals("create")) {
+				response = this.createAccount(requestParts[2], requestParts[3], requestParts[4], requestParts[5], requestParts[6], requestParts[7], requestParts[8]);
+				
+			}else if(requestParts[1].equals("reserv")) {
+				response = this.reserveBook(requestParts[2], requestParts[3], requestParts[4], requestParts[5]);				
+			}else if(requestParts[1].equals("getnon")) {
+				response = this.getNonReturn(requestParts[2], requestParts[3], requestParts[4], Integer.parseInt(requestParts[5]));				
+			}	
+			
+			
+			System.out.println("Response Details: " +response);
+			us.sendResponse(response);
 				
 		}catch(Exception err) {
 			err.printStackTrace();
@@ -401,18 +376,21 @@ public class LibraryImpl  implements Runnable {
 			
 			Thread server1 = new Thread(ls);
 			server1.start();
+			System.out.println("Van server started at port: "+ls.institutePort);
 			
 			ls = new LibraryImpl();
 			ls.instituteName = "con";
 			ls.institutePort = 4000;
 			Thread server2 = new Thread(ls);			
 			server2.start();
+			System.out.println("Van server started at port: "+ls.institutePort);
 			
 			ls = new LibraryImpl();
 			ls.instituteName = "dow";
 			ls.institutePort = 5000;
 			Thread server3 = new Thread(ls);
 			server3.start();
+			System.out.println("Van server started at port: "+ls.institutePort);
 			
 		} catch (Exception e) {
 			System.out.println("Exception in servers Startup:" + e);
