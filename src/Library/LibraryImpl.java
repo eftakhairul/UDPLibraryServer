@@ -383,7 +383,7 @@ public class LibraryImpl  implements Runnable {
 				String response = "";
 				
 				while(true) {
-					uc        =  new UDPClient(LibraryImpl.this.frontendHost, 10001);															
+					uc        =  new UDPClient(LibraryImpl.this.frontendHost, 11000);															
 					String data = udpServer.recieveRequest();
 					//Server Log
 					System.out.println("----------------------------Multicast Server: "+LibraryImpl.this.frontendHost+"-6000 ----------------------------------------------");
@@ -404,8 +404,9 @@ public class LibraryImpl  implements Runnable {
 						System.out.println("inter-library executed");
 						response = LibraryImpl.this.processUDPCall(requestParts[requestParts.length -2], data);				
 					}
-					System.out.println("Frontend response: "+response+"||4000");
-					uc.sendOnly(response+"||4000");				
+					response += ":4000";
+					System.out.println("Frontend response: "+response);
+					uc.sendOnly(response);				
 				}
 			}		
 			catch(Exception err) {
@@ -455,25 +456,25 @@ public class LibraryImpl  implements Runnable {
 		Book bookB = new Book("french", "bb", 3);
 	
 		//Vanlien Library Book insertion
-		VanLibrary.put("english", bookA);
-		VanLibrary.put("french", bookB);		
-		System.out.println("Varnier's books are: english (3 copies), french(3 copies). Size: "+ VanLibrary.size());
+		VanLibrary.put(bookA.bookName, bookA);
+		VanLibrary.put(bookB.bookName, bookB);		
+		System.out.println("Varnier's books are: "+bookA.bookName+" (3 copies), "+bookB.bookName+" (3 copies). Size: "+ VanLibrary.size());
 		
 		
 		//Concordia Library Book insertion
 		Book bookc = new Book("cuda", "nicholas", 2);
 		Book bookd = new Book("opencl", "munshi", 3);
-		ConLibrary.put("cuda",bookc);
-		ConLibrary.put("opencl",bookd);		
-		System.out.println("Concordia's books are: cuda (2 copies), opencl (3 copies). Size: "+ ConLibrary.size());
+		ConLibrary.put(bookc.bookName,bookc);
+		ConLibrary.put(bookd.bookName,bookd);		
+		System.out.println("Concordia's books are: "+bookc.bookName+" (2 copies), "+bookd.bookName+" (3 copies). Size: "+ ConLibrary.size());
 		
 		
 		//Dowson ULibrary Book insertion
-		Book booke = new Book("3dmath", "plecher", 3);
+		Book booke = new Book("Bones", "Kathy", 2);
 		Book bookf = new Book("4dmath", "Sr. plecher", 3);
-		DowLibrary.put("3dmath", booke);
-		DowLibrary.put("4dmath", bookf);	
-		System.out.println("Dowson's books are: 3dmath (1 copies), 4dmath (3 copies) Size: "+ DowLibrary.size());
+		DowLibrary.put(booke.bookName, booke);
+		DowLibrary.put(bookf.bookName, bookf);	
+		System.out.println("Dowson's books are: "+booke.bookName+" (2 copies), "+bookf.bookName+" (3 copies) Size: "+ DowLibrary.size());
 	}
 
 	
@@ -559,7 +560,7 @@ public class LibraryImpl  implements Runnable {
 			
 			ls.frontendHost = frontend;
 			ls.inerClassRun();
-			System.out.println("Multicast server started at port: 6000");
+			System.out.println("Multicast server: "+ls.frontendHost+" started at port: 6000");
 			
 			Thread server1 = new Thread(ls);
 			server1.start();
