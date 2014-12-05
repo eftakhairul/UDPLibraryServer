@@ -311,7 +311,7 @@ public class LibraryImpl  implements Runnable {
 	
 	public String getDow(int days)
 	{
-		String message = "Educational Institute: Dow";	
+		String message = "";	
 		
 		if (DowLibrary.size() > 0) {
 			for (Book book : DowLibrary.values()) {
@@ -378,16 +378,15 @@ public class LibraryImpl  implements Runnable {
 			UDPClient uc   =  null;
 			UDPMulticastServer udpServer = null;
 			try {	
-				udpServer = new UDPMulticastServer("225.4.5.6", 5000);
+				udpServer = new UDPMulticastServer("225.4.5.6", 6000);	
+				
 				String response = "";
 				
 				while(true) {
-					
-				
-					uc =  new UDPClient(LibraryImpl.this.frontendHost, 10001);	
+					uc        =  new UDPClient(LibraryImpl.this.frontendHost, 10001);															
 					String data = udpServer.recieveRequest();
 					//Server Log
-					System.out.println("----------------------------Multicast Server: "+LibraryImpl.this.frontendHost+"-5000 ----------------------------------------------");
+					System.out.println("----------------------------Multicast Server: "+LibraryImpl.this.frontendHost+"-6000 ----------------------------------------------");
 					System.out.println("Response Details: " +data);
 					
 					String[] requestParts = data.split(":");
@@ -405,8 +404,8 @@ public class LibraryImpl  implements Runnable {
 						System.out.println("inter-library executed");
 						response = LibraryImpl.this.processUDPCall(requestParts[requestParts.length -2], data);				
 					}
-					System.out.println("Frontend response: "+response);
-					uc.sendOnly(response);					
+					System.out.println("Frontend response: "+response+"||4000");
+					uc.sendOnly(response+"||4000");				
 				}
 			}		
 			catch(Exception err) {
@@ -488,13 +487,12 @@ public class LibraryImpl  implements Runnable {
 		String response = null;
 		UDPServer us    = null;
 		String data 	= null; 
-		try{
-			us 					  = new UDPServer("localhost", this.institutePort);
+		try{		
+			us 			  = new UDPServer("localhost", this.institutePort);
 			while(true) {				
-				data 		  = us.recieveRequest();
-				
+				data 		  = us.recieveRequest();				
 				//Server Log
-				System.out.println("----------------------------Server --"+this.instituteName+":"+this.institutePort+"-----------------------------------------------");
+				System.out.println("----------------------------Server: "+this.instituteName+"-"+this.institutePort+"-----------------------------------------------");
 				System.out.println("Response Details: " +data);
 				
 				String[] requestParts = data.split(":");
@@ -561,7 +559,7 @@ public class LibraryImpl  implements Runnable {
 			
 			ls.frontendHost = frontend;
 			ls.inerClassRun();
-			System.out.println("Multicast server started at port: 5000");
+			System.out.println("Multicast server started at port: 6000");
 			
 			Thread server1 = new Thread(ls);
 			server1.start();
