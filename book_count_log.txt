@@ -1,0 +1,2 @@
+Successed. Next avialble book cuda: 1
+Successed. Next avialble book cuda: 0

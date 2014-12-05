@@ -3,10 +3,14 @@ package Library;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import UDP.UDPClient;
 import UDP.UDPMulticastServer;
@@ -21,6 +25,7 @@ public class LibraryImpl  implements Runnable {
 	/* Institute Name */
 	public String instituteName;
 	public int institutePort;
+	public String frontendHost;
 	
 
 	/* Global Libraries definition */
@@ -247,7 +252,7 @@ public class LibraryImpl  implements Runnable {
 							   String password,
 							   String educationalInstitude, 
 							   int days) {
-		String message = null;
+		String message = "";
 		
 		if((!userName.equals("admin")) || (!password.equals("admin"))) {
 			message = "Sorry!!! You are not admin";
@@ -263,7 +268,7 @@ public class LibraryImpl  implements Runnable {
 	
 	public String getVan(int days)
 	{
-		String message = "Educational Institute: Van";	
+		String message = "";	
 		
 		if (VanLibrary.size() > 0) {
 			for (Book book : VanLibrary.values()) {
@@ -271,15 +276,10 @@ public class LibraryImpl  implements Runnable {
 					for (int i = 0; i < book.index; i++) {
 						Student student = StudentRecord.get(book.assocStudents[i].userName);
 						if (book.assocStudents[i].getDueDays() >= days) {
-							message += "\nFirst Name: "+ student.firstName
-									  +"\nLast Name: " + student.lastName 
-									  +"\nPhone Number is: "+ student.phoneNumber
-									  +"\nBook Reserved is: "+ book.bookName
-									  +"\nAmount of fine: 0" 
-									  +"\n-------------------------------------"
-									  +"::";
+							message += "van:"+ student.firstName+":" + student.lastName+":"+ student.phoneNumber+"::";
 						}
 					}
+					message += "||";
 				}
 			}
 		}
@@ -290,7 +290,7 @@ public class LibraryImpl  implements Runnable {
 	
 	public String getCon(int days)
 	{
-		String message = "Educational Institute: Con";	
+		String message = "";	
 		
 		if (ConLibrary.size() > 0) {
 			for (Book book : ConLibrary.values()) {
@@ -298,15 +298,10 @@ public class LibraryImpl  implements Runnable {
 					for (int i = 0; i < book.index; i++) {
 						Student student = StudentRecord.get(book.assocStudents[i].userName);
 						if (book.assocStudents[i].getDueDays() >= days) {
-							message += "\nFirst Name: "+ student.firstName
-									  +"\nLast Name: " + student.lastName 
-									  +"\nPhone Number is: "+ student.phoneNumber
-									  +"\nBook Reserved is: "+ book.bookName
-									  +"\nAmount of fine: 0" 
-									  +"\n-------------------------------------"
-									  +"::";
+							message += "con:"+ student.firstName+":" + student.lastName+":"+ student.phoneNumber+"::";
 						}
 					}
+					message += "||";
 				}
 			}
 		}
@@ -324,15 +319,10 @@ public class LibraryImpl  implements Runnable {
 					for (int i = 0; i < book.index; i++) {
 						Student student = StudentRecord.get(book.assocStudents[i].userName);
 						if (book.assocStudents[i].getDueDays() >= days) {
-							message += "\nFirst Name: "+ student.firstName
-									  +"\nLast Name: " + student.lastName 
-									  +"\nPhone Number is: "+ student.phoneNumber
-									  +"\nBook Reserved is: "+ book.bookName
-									  +"\nAmount of fine: 0" 
-									  +"\n-------------------------------------"
-									  +"::";
+							message += "dow:"+ student.firstName+":" + student.lastName+":"+ student.phoneNumber+"::";
 						}
 					}
+					message += "||";
 				}
 			}
 		}
@@ -393,15 +383,11 @@ public class LibraryImpl  implements Runnable {
 				
 				while(true) {
 					
-					//###########################################
-					//
-					//              UPDATE Frontend PC
-					//
-					//##########################################
-					uc =  new UDPClient("localhost", 10001);	
+				
+					uc =  new UDPClient(LibraryImpl.this.frontendHost, 10001);	
 					String data = udpServer.recieveRequest();
 					//Server Log
-					System.out.println("----------------------------Multicast Server: 5000 ----------------------------------------------");
+					System.out.println("----------------------------Multicast Server: "+LibraryImpl.this.frontendHost+"-5000 ----------------------------------------------");
 					System.out.println("Response Details: " +data);
 					
 					String[] requestParts = data.split(":");
@@ -549,7 +535,19 @@ public class LibraryImpl  implements Runnable {
 	 */
 	public static void main(String[] args) {
 		
+		Properties prop = new Properties();
+		InputStream input = null;
+		
 		try {
+			input = new FileInputStream("config.properties");
+			 
+			// load a properties file
+			prop.load(input);
+	 
+			// get the property value and print it out
+			String frontend = prop.getProperty("frontend");		
+			
+			
 			rawBookEntry();
 			
 			// Invoke message for running all UDP Server
@@ -561,6 +559,7 @@ public class LibraryImpl  implements Runnable {
 			ls.institutePort = 4001;
 			LibraryImpl.vanport = ls.institutePort;
 			
+			ls.frontendHost = frontend;
 			ls.inerClassRun();
 			System.out.println("Multicast server started at port: 5000");
 			
@@ -584,8 +583,18 @@ public class LibraryImpl  implements Runnable {
 			server3.start();
 			System.out.println("dow server started at port: "+ls.institutePort);
 			
+		} catch (IOException io) {
+			io.printStackTrace();
 		} catch (Exception e) {
 			System.out.println("Exception in servers Startup:" + e);
+		}finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }
