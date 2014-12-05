@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import UDP.UDPClient;
+import UDP.UDPMulticastServer;
 import UDP.UDPServer;
 
 /*
@@ -339,6 +340,98 @@ public class LibraryImpl  implements Runnable {
 		return message;		
 	}
 	
+	public void inerClassRun()
+	{
+		InterLibUDP interLibUDP = new InterLibUDP();
+		interLibUDP.start();
+	}
+	
+	public String processUDPCall(String nam, String request)
+	{
+		UDPClient uc   =  null;
+		String output = null;
+		switch (nam) {
+		// Vanier college
+		case "van": {
+			uc = new UDPClient("localhost", LibraryImpl.vanport);	
+			output = uc.send(request);
+		}			
+		break;
+
+		// Concordia University
+		case "con": {
+			uc = new UDPClient("localhost", LibraryImpl.conport);	
+			output = uc.send(request);
+		}
+			break;
+
+		// Dawson College
+		case "dow": {
+			uc = new UDPClient("localhost", LibraryImpl.dowport);	
+			output = uc.send(request);
+		}
+			break;
+
+		default: {
+		}
+			break;
+		}
+		
+		return output;		
+	}
+	
+	class InterLibUDP extends Thread
+	{	
+		
+		public void run()
+		{	
+			UDPClient uc   =  null;
+			UDPMulticastServer udpServer = null;
+			try {	
+				udpServer = new UDPMulticastServer("225.4.5.6", 5000);
+				String response = "";
+				
+				while(true) {
+					
+					//###########################################
+					//
+					//              UPDATE Frontend PC
+					//
+					//##########################################
+					uc =  new UDPClient("localhost", 10001);	
+					String data = udpServer.recieveRequest();
+					//Server Log
+					System.out.println("----------------------------Multicast Server: 5000 ----------------------------------------------");
+					System.out.println("Response Details: " +data);
+					
+					String[] requestParts = data.split(":");
+					
+					if(requestParts[1].equals("create")) {
+						System.out.println("create executed");
+						response = LibraryImpl.this.createAccount(requestParts[2], requestParts[3], requestParts[4], requestParts[5], requestParts[6], requestParts[7], requestParts[8]);					
+					}else if(requestParts[1].equals("reserv")) {
+						System.out.println("reserve executed");
+						response = LibraryImpl.this.processUDPCall(requestParts[requestParts.length -2], data);					
+					}else if(requestParts[1].equals("getnon")) {
+						System.out.println("getNOnReturn executed");
+						response = LibraryImpl.this.getNonReturn(requestParts[2], requestParts[3], requestParts[4], 3);						
+					} else if(requestParts[1].equals("intrese")) {
+						System.out.println("inter-library executed");
+						response = LibraryImpl.this.processUDPCall(requestParts[requestParts.length -2], data);				
+					}
+					System.out.println("Frontend response: "+response);
+					uc.sendOnly(response);					
+				}
+			}		
+			catch(Exception err) {
+				err.printStackTrace();
+			}
+			finally{
+				udpServer.close();
+			}
+		}
+	}
+	
 
 	
 	/*
@@ -460,13 +553,16 @@ public class LibraryImpl  implements Runnable {
 			rawBookEntry();
 			
 			// Invoke message for running all UDP Server
-			LibraryImpl ls = new LibraryImpl();			
+			LibraryImpl ls = null;	
 			
 			//Web  service block
 			ls = new LibraryImpl();
 			ls.instituteName = "van";
 			ls.institutePort = 4001;
 			LibraryImpl.vanport = ls.institutePort;
+			
+			ls.inerClassRun();
+			System.out.println("Multicast server started at port: 5000");
 			
 			Thread server1 = new Thread(ls);
 			server1.start();
