@@ -393,7 +393,7 @@ public class LibraryImpl  implements Runnable {
 					
 					if(requestParts[1].equals("create")) {
 						System.out.println("create executed");
-						response = LibraryImpl.this.createAccount(requestParts[2], requestParts[3], requestParts[4], requestParts[5], requestParts[6], requestParts[7], requestParts[8]);					
+						response = LibraryImpl.this.createAccount(requestParts[2], requestParts[3], requestParts[4], requestParts[5], requestParts[6], requestParts[7], requestParts[requestParts.length -2]);					
 					}else if(requestParts[1].equals("reserv")) {
 						System.out.println("reserve executed");
 						response = LibraryImpl.this.processUDPCall(requestParts[requestParts.length -2], data);					
