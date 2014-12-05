@@ -553,9 +553,9 @@ public class LibraryImpl  implements Runnable {
 			
 			//Web  service block
 			ls = new LibraryImpl();
-			ls.instituteName = "van";
-			ls.institutePort = 4001;
-			LibraryImpl.vanport = ls.institutePort;
+			ls.instituteName 		= "van";
+			ls.institutePort 		= 4001;
+			LibraryImpl.vanport 	= ls.institutePort;
 			
 			ls.frontendHost = frontend;
 			ls.inerClassRun();
@@ -566,18 +566,18 @@ public class LibraryImpl  implements Runnable {
 			System.out.println("Van server started at port: "+ls.institutePort);
 			
 			ls = new LibraryImpl();
-			ls.instituteName = "con";
-			ls.institutePort = 4002;
+			ls.instituteName 	= "con";
+			ls.institutePort 	= 4002;
 			LibraryImpl.conport = ls.institutePort;
-			Thread server2 = new Thread(ls);			
+			Thread server2 		= new Thread(ls);			
 			server2.start();
 			System.out.println("con server started at port: "+ls.institutePort);
 			
 			ls = new LibraryImpl();
-			ls.instituteName = "dow";
-			ls.institutePort = 4003;
+			ls.instituteName 	= "dow";
+			ls.institutePort 	= 4003;
 			LibraryImpl.dowport = ls.institutePort;
-			Thread server3 = new Thread(ls);
+			Thread server3 		= new Thread(ls);
 			server3.start();
 			System.out.println("dow server started at port: "+ls.institutePort);
 			
